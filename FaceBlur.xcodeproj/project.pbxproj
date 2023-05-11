@@ -13,6 +13,7 @@
 		8B008DE42A0210BE00D58EDB /* Main.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B008DE22A0210BE00D58EDB /* Main.storyboard */; };
 		8B008DE62A0210BE00D58EDB /* Assets.xcassets in Resources */ = {isa = PBXBuildFile; fileRef = 8B008DE52A0210BE00D58EDB /* Assets.xcassets */; };
 		8B008DE92A0210BE00D58EDB /* LaunchScreen.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8B008DE72A0210BE00D58EDB /* LaunchScreen.storyboard */; };
+		8BBF3ED02A05FB8900BD95AF /* Storyboard.storyboard in Resources */ = {isa = PBXBuildFile; fileRef = 8BBF3ECF2A05FB8900BD95AF /* Storyboard.storyboard */; };
 /* End PBXBuildFile section */
 
 /* Begin PBXFileReference section */
@@ -24,6 +25,7 @@
 		8B008DE52A0210BE00D58EDB /* Assets.xcassets */ = {isa = PBXFileReference; lastKnownFileType = folder.assetcatalog; path = Assets.xcassets; sourceTree = "<group>"; };
 		8B008DE82A0210BE00D58EDB /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; name = Base; path = Base.lproj/LaunchScreen.storyboard; sourceTree = "<group>"; };
 		8B008DEA2A0210BE00D58EDB /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; path = Info.plist; sourceTree = "<group>"; };
+		8BBF3ECF2A05FB8900BD95AF /* Storyboard.storyboard */ = {isa = PBXFileReference; lastKnownFileType = file.storyboard; path = Storyboard.storyboard; sourceTree = "<group>"; };
 /* End PBXFileReference section */
 
 /* Begin PBXFrameworksBuildPhase section */
@@ -57,6 +59,7 @@
 			isa = PBXGroup;
 			children = (
 				8B008DDC2A0210BE00D58EDB /* AppDelegate.swift */,
+				8BBF3ECF2A05FB8900BD95AF /* Storyboard.storyboard */,
 				8B008DDE2A0210BE00D58EDB /* SceneDelegate.swift */,
 				8B008DE02A0210BE00D58EDB /* ViewController.swift */,
 				8B008DE22A0210BE00D58EDB /* Main.storyboard */,
@@ -126,6 +129,7 @@
 			buildActionMask = 2147483647;
 			files = (
 				8B008DE92A0210BE00D58EDB /* LaunchScreen.storyboard in Resources */,
+				8BBF3ED02A05FB8900BD95AF /* Storyboard.storyboard in Resources */,
 				8B008DE62A0210BE00D58EDB /* Assets.xcassets in Resources */,
 				8B008DE42A0210BE00D58EDB /* Main.storyboard in Resources */,
 			);
@@ -287,6 +291,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ANR2S4T4AN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FaceBlur/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
@@ -314,6 +319,7 @@
 				ASSETCATALOG_COMPILER_GLOBAL_ACCENT_COLOR_NAME = AccentColor;
 				CODE_SIGN_STYLE = Automatic;
 				CURRENT_PROJECT_VERSION = 1;
+				DEVELOPMENT_TEAM = ANR2S4T4AN;
 				GENERATE_INFOPLIST_FILE = YES;
 				INFOPLIST_FILE = FaceBlur/Info.plist;
 				INFOPLIST_KEY_UIApplicationSupportsIndirectInputEvents = YES;
