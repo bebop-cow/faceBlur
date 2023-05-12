@@ -57,6 +57,16 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let faces = detector?.features(in: image)
 
         DispatchQueue.main.async {
+            if self.blurEnabled {
+                self.blurView?.removeFromSuperview() // Remove previously added blur view if it exists
+                let blurEffect = UIBlurEffect(style: .regular)
+                let blurView = UIVisualEffectView(effect: blurEffect)
+                self.view.addSubview(blurView)
+                self.blurView = blurView
+            } else {
+                self.blurView?.removeFromSuperview()
+            }
+
             for face in faces as! [CIFaceFeature] {
                 let faceBounds = face.bounds
                 let x = faceBounds.origin.x / image.extent.size.width
@@ -66,17 +76,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 let faceRect = CGRect(x: x, y: y, width: width, height: height)
 
                 if self.blurEnabled {
-                    let blurEffect = UIBlurEffect(style: .regular)
-                    let blurView = UIVisualEffectView(effect: blurEffect)
-                    blurView.frame = faceRect
-                    self.view.addSubview(blurView)
-                    self.blurView = blurView
-                } else {
-                    self.blurView?.removeFromSuperview()
+                    self.blurView?.frame = faceRect
                 }
             }
         }
     }
+
   
     @IBAction func blurButtonTapped(_ sender: UIButton) {
         blurEnabled = !blurEnabled
