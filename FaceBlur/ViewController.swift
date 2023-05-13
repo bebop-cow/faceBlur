@@ -18,11 +18,11 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
     override func viewDidLoad() {
         super.viewDidLoad()
-        let blurButton = UIButton(type: .system)
-        blurButton.setTitle("Toggle Blur", for: .normal)
-        blurButton.addTarget(self, action: #selector(blurButtonTapped(_:)), for: .touchUpInside)
-        blurButton.frame = CGRect(x: 16, y: 516, width: 120, height: 44) // Adjust position and size as desired
-        view.addSubview(blurButton)
+        blurView = UIVisualEffectView(effect: UIBlurEffect(style: .regular))
+        blurView.frame = view.bounds
+        blurView.autoresizingMask = [.flexibleWidth, .flexibleHeight]
+        view.addSubview(blurView)
+
         setupCamera()
     }
 
@@ -52,9 +52,10 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let image = CIImage(cvPixelBuffer: pixelBuffer)
 
-
         let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: [CIDetectorAccuracy: CIDetectorAccuracyHigh])
         let faces = detector?.features(in: image)
+
+        print("Number of faces detected: \(faces?.count ?? 0)")
 
         DispatchQueue.main.async {
             if self.blurEnabled {
@@ -67,7 +68,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 self.blurView?.removeFromSuperview()
             }
 
-            for face in faces as! [CIFaceFeature] {
+            if let face = faces?.first as? CIFaceFeature {
+                print("Face detected!")
                 let faceBounds = face.bounds
                 let x = faceBounds.origin.x / image.extent.size.width
                 let y = faceBounds.origin.y / image.extent.size.height
@@ -77,10 +79,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
                 if self.blurEnabled {
                     self.blurView?.frame = faceRect
+                } else {
+                    self.blurView?.frame = self.view.bounds
                 }
             }
         }
     }
+
+
 
   
     @IBAction func blurButtonTapped(_ sender: UIButton) {
