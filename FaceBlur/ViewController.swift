@@ -20,31 +20,17 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     override func viewDidLoad() {
         super.viewDidLoad()
         
-        // Setup AVCaptureSession
-        let captureSession = AVCaptureSession()
-        captureSession.sessionPreset = .photo
-        
-        // Setup camera device
-        let cameraDevice = AVCaptureDevice.default(.builtInWideAngleCamera, for: .video, position: .back)
-        guard let cameraInput = try? AVCaptureDeviceInput(device: cameraDevice!),
-              captureSession.canAddInput(cameraInput) else { return }
-        captureSession.addInput(cameraInput)
-        
-        // Setup video output
-        let videoOutput = AVCaptureVideoDataOutput()
-        videoOutput.videoSettings = [kCVPixelBufferPixelFormatTypeKey as String: Int(kCVPixelFormatType_32BGRA)]
-        videoOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "video_queue"))
-        guard captureSession.canAddOutput(videoOutput) else { return }
-        captureSession.addOutput(videoOutput)
-        
-        // Setup video preview layer
-        let videoPreviewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        videoPreviewLayer.videoGravity = .resizeAspectFill
-        videoPreviewLayer.frame = view.layer.bounds
-        view.layer.addSublayer(videoPreviewLayer)
-        
-        // Start running the capture session
-        captureSession.startRunning()
+        let previewLayer = AVCaptureVideoPreviewLayer(session: session)
+        previewLayer.videoGravity = .resizeAspectFill
+        previewLayer.frame = view.bounds
+        view.layer.addSublayer(previewLayer)
+
+        let blurEffect = UIBlurEffect(style: .regular)
+        let blurView = UIVisualEffectView(effect: blurEffect)
+        blurView.frame = view.bounds
+        view.addSubview(blurView)
+        self.blurView = blurView // Replace with self.blurView
+
     }
     
     
@@ -52,24 +38,26 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
+        
         let image = CIImage(cvPixelBuffer: pixelBuffer)
         
-        let options: [String: Any] = [CIDetectorAccuracy: CIDetectorAccuracyHigh,
-                               CIDetectorMaxFeatureCount: 10]
-        
+        let options: [String: Any] = [CIDetectorAccuracy: CIDetectorAccuracyHigh, CIDetectorMaxFeatureCount: 10]
         let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: options)
-        
         let faces = detector?.features(in: image)
         
         DispatchQueue.main.async {
             if self.blurEnabled {
-                self.blurView?.removeFromSuperview() // Remove previously added blur view if it exists
-                let blurEffect = UIBlurEffect(style: .regular)
-                let blurView = UIVisualEffectView(effect: blurEffect)
-                self.view.addSubview(blurView)
-                self.blurView = blurView
+                // Add blur effect view to the root view if it doesn't exist
+                if self.blurView == nil {
+                    let blurEffect = UIBlurEffect(style: .regular)
+                    let blurView = UIVisualEffectView(effect: blurEffect)
+                    blurView.frame = self.view.bounds
+                    self.view.addSubview(blurView)
+                    self.blurView = blurView
+                }
             } else {
                 self.blurView?.removeFromSuperview()
+                self.blurView = nil
             }
             
             if let face = faces?.first as? CIFaceFeature {
@@ -86,23 +74,21 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                     let radius = min(faceRect.width, faceRect.height) * 0.5 * 10
                     filter.setValue(radius, forKey: kCIInputRadiusKey)
                     let blurredImage = filter.outputImage!
-                    
+
                     let context = CIContext()
                     let cgImage = context.createCGImage(blurredImage, from: image.extent)!
-                    
+
                     let imageView = UIImageView(image: UIImage(cgImage: cgImage))
                     imageView.frame = faceRect
                     self.view.addSubview(imageView)
-                    self.blurView = UIVisualEffectView()
-                    self.blurView?.frame = faceRect
+                    self.blurView = imageView // Replace with self.blurView
                 } else {
                     self.blurView?.frame = self.view.bounds
+
                 }
             }
         }
-        
-        
-        
+     
         func blurButtonTapped(_ sender: UIButton) {
             blurEnabled = !blurEnabled
             if blurEnabled {
