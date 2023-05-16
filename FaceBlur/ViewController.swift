@@ -14,7 +14,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     var captureSession = AVCaptureSession()
     var previewLayer: AVCaptureVideoPreviewLayer!
     var blurEnabled = false
-    var blurImageViews = [UIImageView]() // updated property
+    var blurImageViews = [UIImageView]()
 
     override func viewDidLoad() {
         super.viewDidLoad()
@@ -22,7 +22,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     }
 
     func setupCamera() {
-        let captureDevice = AVCaptureDevice.default(for: AVMediaType.video)
+        let captureDevice = AVCaptureDevice.default(for: .video)
         guard let input = try? AVCaptureDeviceInput(device: captureDevice!), captureSession.canAddInput(input) else { return }
         captureSession.addInput(input)
 
@@ -79,7 +79,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
         let scaleX = view.bounds.width
         let scaleY = view.bounds.height
-        let videoBox = AVCaptureVideoPreviewLayer.videoPreviewBox(for: previewLayer.videoGravity, frameSize: view.bounds.size, apertureSize: faceBounds.size)
+        let videoBox = videoPreviewBox(for: previewLayer.videoGravity, frameSize: view.bounds.size, apertureSize: faceBounds.size)
         
         var transform = CGAffineTransform.identity
         transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
@@ -89,5 +89,47 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let transformedBounds = faceBounds.applying(transform)
         return transformedBounds
     }
+    
+    func videoPreviewBox(for gravity: AVLayerVideoGravity, frameSize: CGSize, apertureSize: CGSize) -> CGRect {
+        let apertureRatio = apertureSize.height / apertureSize.width
+        let viewRatio = frameSize.width / frameSize.height
 
+        var size = CGSize.zero
+
+        if gravity == .resizeAspectFill {
+            if viewRatio > apertureRatio {
+                size.width = frameSize.width
+                size.height = apertureSize.width * (frameSize.width / apertureSize.height)
+            } else {
+                size.width = apertureSize.height * (frameSize.height / apertureSize.width)
+                size.height = frameSize.height
+            }
+        } else if gravity == .resizeAspect {
+            if viewRatio > apertureRatio {
+                size.width = apertureSize.height * (frameSize.height / apertureSize.width)
+                size.height = frameSize.height
+            } else {
+                size.width = frameSize.width
+                size.height = apertureSize.width * (frameSize.width / apertureSize.height)
+            }
+        } else if gravity == .resize {
+            size.width = frameSize.width
+            size.height = frameSize.height
+        }
+
+        var videoBox = CGRect.zero
+        videoBox.size = size
+        if size.width < frameSize.width {
+            videoBox.origin.x = (frameSize.width - size.width) / 2.0
+        } else {
+            videoBox.origin.x = (size.width - frameSize.width) / 2.0
+        }
+        if size.height < frameSize.height {
+            videoBox.origin.y = (frameSize.height - size.height) / 2.0
+        } else {
+            videoBox.origin.y = (size.height - frameSize.height) / 2.0
+        }
+
+        return videoBox
+    }
 }
