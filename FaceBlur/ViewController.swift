@@ -68,12 +68,26 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                     let blurView = UIVisualEffectView(effect: blurEffect)
                     blurView.frame = face.bounds
                     imageView.addSubview(blurView)
-                    imageView.frame = face.bounds
+                    imageView.frame = self.calculateImageViewFrame(for: face.bounds)
                     self.view.addSubview(imageView)
                     self.blurImageViews.append(imageView)
                 }
             }
         }
+    }
+    
+    func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
+        let scaleX = view.bounds.width
+        let scaleY = view.bounds.height
+        let videoBox = AVCaptureVideoPreviewLayer.videoPreviewBox(for: previewLayer.videoGravity, frameSize: view.bounds.size, apertureSize: faceBounds.size)
+        
+        var transform = CGAffineTransform.identity
+        transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
+        transform = transform.translatedBy(x: videoBox.xOffset, y: videoBox.yOffset)
+        transform = transform.scaledBy(x: videoBox.width, y: videoBox.height)
+        
+        let transformedBounds = faceBounds.applying(transform)
+        return transformedBounds
     }
 
 }
