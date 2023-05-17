@@ -78,6 +78,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                         outlineView.layer.borderWidth = 2.0
                         outlineView.layer.borderColor = UIColor.yellow.cgColor
                         self.view.addSubview(outlineView)
+                        print("Added outline view at \(faceBounds)")
 
                         let imageView = UIImageView()
                         imageView.contentMode = .scaleAspectFill
@@ -92,8 +93,11 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 }
                 self.blurImageViews.removeAll()
             }
+            
+            print("Number of detected faces: \(faces?.count ?? 0)")
         }
     }
+
 
 
     
