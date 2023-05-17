@@ -52,34 +52,47 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
         guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
         let image = CIImage(cvPixelBuffer: pixelBuffer)
-        
+
         let options: [String: Any] = [CIDetectorAccuracy: CIDetectorAccuracyHigh,
-                               CIDetectorMaxFeatureCount: 10]
-        
+                                      CIDetectorMaxFeatureCount: 10]
+
         let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: options)
-        
+
         let faces = detector?.features(in: image)
-        
-        DispatchQueue.main.async {
-            for imageView in self.blurImageViews {
-                imageView.removeFromSuperview()
-            }
-            
+
+        DispatchQueue.main.async { [weak self] in
+            guard let self = self else { return }
+
             if self.blurEnabled {
-                let blurEffect = UIBlurEffect(style: .regular)
-                for face in faces as? [CIFaceFeature] ?? [] {
-                    let imageView = UIImageView()
-                    imageView.contentMode = .scaleAspectFill
-                    let blurView = UIVisualEffectView(effect: blurEffect)
-                    blurView.frame = face.bounds
-                    imageView.addSubview(blurView)
-                    imageView.frame = self.calculateImageViewFrame(for: face.bounds)
-                    self.view.addSubview(imageView)
-                    self.blurImageViews.append(imageView)
+                for imageView in self.blurImageViews {
+                    imageView.removeFromSuperview()
                 }
+                self.blurImageViews.removeAll()
+
+                let blurEffect = UIBlurEffect(style: .regular)
+
+                if let features = faces as? [CIFaceFeature] {
+                    for face in features {
+                        let faceBounds = face.bounds
+                        let imageView = UIImageView()
+                        imageView.contentMode = .scaleAspectFill
+                        let blurView = UIVisualEffectView(effect: blurEffect)
+                        blurView.frame = self.calculateImageViewFrame(for: faceBounds)
+                        imageView.addSubview(blurView)
+                        imageView.frame = faceBounds
+                        self.view.addSubview(imageView)
+                        self.blurImageViews.append(imageView)
+                    }
+                }
+            } else {
+                for imageView in self.blurImageViews {
+                    imageView.removeFromSuperview()
+                }
+                self.blurImageViews.removeAll()
             }
         }
     }
+
     
     func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
         let scaleX = view.bounds.width
