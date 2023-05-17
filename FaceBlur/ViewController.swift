@@ -69,16 +69,18 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 }
                 self.blurImageViews.removeAll()
 
-                let blurEffect = UIBlurEffect(style: .regular)
-
                 if let features = faces as? [CIFaceFeature] {
                     for face in features {
-                        let faceBounds = face.bounds
+                        let faceBounds = self.calculateImageViewFrame(for: face.bounds)
+
+                        // Add yellow outline box
+                        let outlineView = UIView(frame: faceBounds)
+                        outlineView.layer.borderWidth = 2.0
+                        outlineView.layer.borderColor = UIColor.yellow.cgColor
+                        self.view.addSubview(outlineView)
+
                         let imageView = UIImageView()
                         imageView.contentMode = .scaleAspectFill
-                        let blurView = UIVisualEffectView(effect: blurEffect)
-                        blurView.frame = self.calculateImageViewFrame(for: faceBounds)
-                        imageView.addSubview(blurView)
                         imageView.frame = faceBounds
                         self.view.addSubview(imageView)
                         self.blurImageViews.append(imageView)
@@ -92,6 +94,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             }
         }
     }
+
 
     
     func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
