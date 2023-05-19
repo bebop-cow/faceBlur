@@ -94,6 +94,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 self.blurImageViews.removeAll()
             }
             
+            self.view.bringSubviewToFront(self.previewLayer)
+
             print("Number of detected faces: \(faces?.count ?? 0)")
         }
     }
