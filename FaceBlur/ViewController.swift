@@ -13,7 +13,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     var captureSession = AVCaptureSession()
     var previewLayer: AVCaptureVideoPreviewLayer!
-    var blurEnabled = false
+    var blurEnabled = true
     var blurImageViews = [UIImageView]()
     
     override func viewDidLoad() {
