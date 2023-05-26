@@ -78,7 +78,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                         outlineView.layer.borderWidth = 2.0
                         outlineView.layer.borderColor = UIColor.yellow.cgColor
                         outlineView.backgroundColor = UIColor.clear // Ensure the outline view is transparent
-                        print("adding outline view")
+                        print("Adding outline view")
                         self.view.addSubview(outlineView)
                         self.view.bringSubviewToFront(outlineView) // Bring the outline view to the front
                         
