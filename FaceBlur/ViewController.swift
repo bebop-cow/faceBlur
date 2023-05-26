@@ -104,13 +104,18 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
             print("Number of detected faces: \(faces?.count ?? 0)")
         }
     }
+    
+    
 
 
 
     
     func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
         let scaleX = view.bounds.width
+        print((scaleX))
         let scaleY = view.bounds.height
+        print((scaleY))
+        
         let videoBox = videoPreviewBox(for: previewLayer.videoGravity, frameSize: view.bounds.size, apertureSize: faceBounds.size)
         
         var transform = CGAffineTransform.identity
