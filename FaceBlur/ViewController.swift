@@ -117,7 +117,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         print("scaleY value: \(scaleY)")
         
         let videoBox = videoPreviewBox(for: previewLayer.videoGravity, frameSize: view.bounds.size, apertureSize: faceBounds.size)
-        print("videoBox \(videoBox)")
+        print("videoBox value: \(videoBox)")
         
         var transform = CGAffineTransform.identity
         transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
@@ -125,7 +125,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         transform = transform.scaledBy(x: videoBox.width, y: videoBox.height)
         
         let transformedBounds = faceBounds.applying(transform)
-        print("transformedBounds value  \(transformedBounds)")
+        print("transformedBounds value:  \(transformedBounds)")
         return transformedBounds
     }
 
