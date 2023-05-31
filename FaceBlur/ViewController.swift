@@ -135,10 +135,14 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let apertureRatio = apertureSize.height / apertureSize.width
         let viewRatio = frameSize.width / frameSize.height
         
+        print("frameSize: \(frameSize), apertureSize: \(apertureSize)")
+        
         switch gravity {
         case .resize:
             videoBox.size.width = frameSize.width
             videoBox.size.height = frameSize.height
+            print("videoBox for resize: \(videoBox)")
+            
         case .resizeAspect:
             if viewRatio > apertureRatio {
                 videoBox.size.width = frameSize.height * apertureRatio
@@ -149,6 +153,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 videoBox.size.height = frameSize.width / apertureRatio
                 videoBox.origin.y = (frameSize.height - videoBox.size.height) / 2
             }
+            print("videoBox for resizeAspect: \(videoBox)")
+            
         case .resizeAspectFill:
             if viewRatio > apertureRatio {
                 videoBox.size.width = frameSize.width
@@ -159,6 +165,9 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 videoBox.size.height = frameSize.height
                 videoBox.origin.x = (frameSize.width - videoBox.size.width) / 2
             }
+            print("videoBox for resizeAspectFill: \(videoBox)")
+
+            
         default:
             break
         }
