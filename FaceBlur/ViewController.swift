@@ -112,12 +112,12 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
         let scaleX = view.bounds.width
-        print("scaleX value: \(scaleX)")
+        //print("scaleX value: \(scaleX)")
         let scaleY = view.bounds.height
-        print("scaleY value: \(scaleY)")
+        //print("scaleY value: \(scaleY)")
         
         let videoBox = videoPreviewBox(for: previewLayer.videoGravity, frameSize: view.bounds.size, apertureSize: faceBounds.size)
-        print("videoBox value: \(videoBox)")
+        //print("videoBox value: \(videoBox)")
         
         var transform = CGAffineTransform.identity
         transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
@@ -125,7 +125,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         transform = transform.scaledBy(x: videoBox.width, y: videoBox.height)
         
         let transformedBounds = faceBounds.applying(transform)
-        print("transformedBounds value:  \(transformedBounds)")
+        //print("transformedBounds value:  \(transformedBounds)")
         return transformedBounds
     }
 
@@ -135,13 +135,13 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         let apertureRatio = apertureSize.height / apertureSize.width
         let viewRatio = frameSize.width / frameSize.height
         
-        print("frameSize: \(frameSize), apertureSize: \(apertureSize)")
+        //print("frameSize: \(frameSize), apertureSize: \(apertureSize)")
         
         switch gravity {
         case .resize:
             videoBox.size.width = frameSize.width
             videoBox.size.height = frameSize.height
-            print("videoBox for resize: \(videoBox)")
+            //print("videoBox for resize: \(videoBox)")
             
         case .resizeAspect:
             if viewRatio > apertureRatio {
@@ -153,7 +153,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 videoBox.size.height = frameSize.width / apertureRatio
                 videoBox.origin.y = (frameSize.height - videoBox.size.height) / 2
             }
-            print("videoBox for resizeAspect: \(videoBox)")
+            //print("videoBox for resizeAspect: \(videoBox)")
             
         case .resizeAspectFill:
             if viewRatio > apertureRatio {
@@ -165,7 +165,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                 videoBox.size.height = frameSize.height
                 videoBox.origin.x = (frameSize.width - videoBox.size.width) / 2
             }
-            print("videoBox for resizeAspectFill: \(videoBox)")
+           // print("videoBox for resizeAspectFill: \(videoBox)")
 
             
         default:

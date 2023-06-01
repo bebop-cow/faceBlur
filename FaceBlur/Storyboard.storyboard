@@ -22,7 +22,6 @@
                                 <state key="normal" title="Button"/>
                                 <buttonConfiguration key="configuration" style="plain" title="toggle blur"/>
                                 <connections>
-                                    <action selector="blur:" destination="aoM-Gn-CYE" eventType="touchUpInside" id="tuu-O3-SI0"/>
                                     <action selector="blurButtonTapped:" destination="aoM-Gn-CYE" eventType="touchUpInside" id="qrV-5r-RVv"/>
                                 </connections>
                             </button>
