@@ -44,6 +44,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         if let previewLayer = previewLayer {
             previewLayer.frame = view.bounds
             previewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
+            print("previewLayer.videoGravity \(previewLayer.videoGravity)")
         }
     }
     
@@ -78,7 +79,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
                         outlineView.layer.borderWidth = 2.0
                         outlineView.layer.borderColor = UIColor.yellow.cgColor
                         outlineView.backgroundColor = UIColor.clear // Ensure the outline view is transparent
-                        print("Adding outline view")
+                        //print("Adding outline view")
                         self.view.addSubview(outlineView)
                         self.view.bringSubviewToFront(outlineView) // Bring the outline view to the front
                         
@@ -118,6 +119,8 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         let videoBox = videoPreviewBox(for: previewLayer.videoGravity, frameSize: view.bounds.size, apertureSize: faceBounds.size)
         //print("videoBox value: \(videoBox)")
+        print("view.bounds.size value: \(view.bounds.size)")
+        print("faceBounds.size value: \(faceBounds.size)")
         
         var transform = CGAffineTransform.identity
         transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
