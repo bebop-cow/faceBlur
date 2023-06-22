@@ -18,6 +18,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
+        previewLayer.videoGravity = .resizeAspectFill
         setupCamera()
     }
     
@@ -112,17 +113,21 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
     
     func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
+        let videoBox = previewLayer.videoPreviewBox(for: .resizeAspectFill, frameSize: view.bounds.size, apertureSize: faceBounds.size)
+        
         let scaleX = view.bounds.width
         let scaleY = view.bounds.height
-
-        let previewSize = previewLayer.frame.size
-        let videoBox = AVMakeRect(aspectRatio: faceBounds.size, insideRect: previewLayer.bounds)
-
-        let transform = CGAffineTransform(scaleX: scaleX, y: scaleY).translatedBy(x: videoBox.origin.x, y: videoBox.origin.y)
+        
+        var transform = CGAffineTransform.identity
+        transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
+        transform = transform.translatedBy(x: videoBox.origin.x, y: videoBox.origin.y)
+        transform = transform.scaledBy(x: videoBox.width, y: videoBox.height)
+        
         let transformedBounds = faceBounds.applying(transform)
-
+        
         return transformedBounds
     }
+
 
     
     func videoPreviewBox(for gravity: AVLayerVideoGravity, frameSize: CGSize, apertureSize: CGSize) -> CGRect {
