@@ -113,10 +113,10 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
 
     
     func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
-        let videoBox = previewLayer.videoPreviewBox(for: .resizeAspectFill, frameSize: view.bounds.size, apertureSize: faceBounds.size)
-        
         let scaleX = view.bounds.width
         let scaleY = view.bounds.height
+        
+        let videoBox = self.videoPreviewBox(for: .resizeAspectFill, frameSize: view.bounds.size, apertureSize: faceBounds.size)
         
         var transform = CGAffineTransform.identity
         transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
@@ -127,6 +127,7 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
         
         return transformedBounds
     }
+
 
 
     
