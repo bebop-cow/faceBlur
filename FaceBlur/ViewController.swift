@@ -18,27 +18,31 @@ class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDele
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        previewLayer.videoGravity = .resizeAspectFill
         setupCamera()
+        previewLayer.videoGravity = .resizeAspectFill
     }
     
     func setupCamera() {
         let captureDevice = AVCaptureDevice.default(for: .video)
-        guard let input = try? AVCaptureDeviceInput(device: captureDevice!), captureSession.canAddInput(input) else { return }
+        guard let input = try? AVCaptureDeviceInput(device: captureDevice!), captureSession.canAddInput(input) else {
+            print("Failed to create AVCaptureDeviceInput")
+            return
+        }
         captureSession.addInput(input)
         
         let output = AVCaptureVideoDataOutput()
         output.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
         captureSession.addOutput(output)
         
+        captureSession.startRunning()
+        
         previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
         previewLayer.videoGravity = .resizeAspectFill
         view.layer.addSublayer(previewLayer)
         
-        DispatchQueue.global(qos: .userInitiated).async { [weak self] in
-            self?.captureSession.startRunning()
-        }
+        previewLayer.frame = view.bounds
     }
+
     
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
