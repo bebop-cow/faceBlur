@@ -12,6 +12,31 @@ import Vision
 class ViewController: UIViewController {
     
     // MARK: - Variables
-    
-    private var drawing : [CAShapeLayer] = []
-}
+     
+     private var drawings: [CAShapeLayer] = []
+     
+     private let videoDataOutput = AVCaptureVideoDataOutput()
+     private let captureSession = AVCaptureSession()
+     
+     /// Using `lazy` keyword because the `captureSession` needs to be loaded before we can use the preview layer.
+     private lazy var previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+     
+     // MARK: - Lifecycle
+     
+     override func viewDidLoad() {
+       super.viewDidLoad()
+       // Do any additional setup after loading the view.
+       
+       addCameraInput()
+       showCameraFeed()
+       
+       getCameraFrames()
+       captureSession.startRunning()
+     }
+     
+     /// The account for when the container's `view` changes.
+     override func viewDidLayoutSubviews() {
+       super.viewDidLayoutSubviews()
+       
+       previewLayer.frame = view.frame
+     }
