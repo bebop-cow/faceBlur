@@ -7,176 +7,137 @@
 
 import UIKit
 import AVFoundation
-import CoreImage
+import Vision
 
-class ViewController: UIViewController, AVCaptureVideoDataOutputSampleBufferDelegate {
+class ViewController: UIViewController {
     
-    var captureSession = AVCaptureSession()
-    var previewLayer: AVCaptureVideoPreviewLayer!
-    var blurEnabled = true
-    var blurImageViews = [UIImageView]()
+    // MARK: - Variables
+    
+    private var drawings: [CAShapeLayer] = []
+    
+    private let videoDataOutput = AVCaptureVideoDataOutput()
+    private let captureSession = AVCaptureSession()
+    
+    /// Using `lazy` keyword because the `captureSession` needs to be loaded before we can use the preview layer.
+    private lazy var previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
+    
+    // MARK: - Lifecycle
     
     override func viewDidLoad() {
         super.viewDidLoad()
-        setupCamera()
-        previewLayer.videoGravity = .resizeAspectFill
-    }
-    
-    func setupCamera() {
-        let captureDevice = AVCaptureDevice.default(for: .video)
-        guard let input = try? AVCaptureDeviceInput(device: captureDevice!), captureSession.canAddInput(input) else {
-            print("Failed to create AVCaptureDeviceInput")
-            return
-        }
-        captureSession.addInput(input)
+        // Do any additional setup after loading the view.
         
-        let output = AVCaptureVideoDataOutput()
-        output.setSampleBufferDelegate(self, queue: DispatchQueue(label: "videoQueue"))
-        captureSession.addOutput(output)
+        addCameraInput()
+        showCameraFeed()
         
+        getCameraFrames()
         captureSession.startRunning()
-        
-        previewLayer = AVCaptureVideoPreviewLayer(session: captureSession)
-        previewLayer.videoGravity = .resizeAspectFill
-        view.layer.addSublayer(previewLayer)
-        
-        previewLayer.frame = view.bounds
     }
-
     
+    /// The account for when the container's `view` changes.
     override func viewDidLayoutSubviews() {
         super.viewDidLayoutSubviews()
-        if let previewLayer = previewLayer {
-            previewLayer.frame = view.bounds
-            previewLayer.videoGravity = AVLayerVideoGravity.resizeAspectFill
-            print("previewLayer.videoGravity \(previewLayer.videoGravity)")
-        }
+        
+        previewLayer.frame = view.frame
     }
     
-    
-    
-    func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
-        guard let pixelBuffer: CVPixelBuffer = CMSampleBufferGetImageBuffer(sampleBuffer) else { return }
-        let image = CIImage(cvPixelBuffer: pixelBuffer)
+    // MARK: - Helper Functions
+     
+     private func addCameraInput() {
+       
+       guard let device = AVCaptureDevice.DiscoverySession(deviceTypes: [.builtInTrueDepthCamera, .builtInDualCamera, .builtInWideAngleCamera], mediaType: .video, position: .front).devices.first else {
+         fatalError("No camera detected. Please use a real camera, not a simulator.")
+       }
+       
+       // ⚠️ You should wrap this in a `do-catch` block, but this will be good enough for the demo.
+       let cameraInput = try! AVCaptureDeviceInput(device: device)
+       captureSession.addInput(cameraInput)
+     }
+     
+     private func showCameraFeed() {
+       previewLayer.videoGravity = .resizeAspectFill
+       view.layer.addSublayer(previewLayer)
+       previewLayer.frame = view.frame
+     }
+     
+     private func getCameraFrames() {
+       videoDataOutput.videoSettings = [(kCVPixelBufferPixelFormatTypeKey as NSString): NSNumber(value: kCVPixelFormatType_32BGRA)] as [String: Any]
+       
+       videoDataOutput.alwaysDiscardsLateVideoFrames = true
+       // You do not want to process the frames on the Main Thread so we off load to another thread
+       videoDataOutput.setSampleBufferDelegate(self, queue: DispatchQueue(label: "camera_frame_processing_queue"))
+       
+       captureSession.addOutput(videoDataOutput)
+       
+       guard let connection = videoDataOutput.connection(with: .video), connection.isVideoOrientationSupported else {
+         return
+       }
+       
+       connection.videoOrientation = .portrait
+     }
+     
+     private func detectFace(image: CVPixelBuffer) {
+       let faceDetectionRequest = VNDetectFaceLandmarksRequest { vnRequest, error in
+         DispatchQueue.main.async {
+           if let results = vnRequest.results as? [VNFaceObservation], results.count > 0 {
+             // print("✅ Detected \(results.count) faces!")
+             self.handleFaceDetectionResults(observedFaces: results)
+           } else {
+             // print("❌ No face was detected")
+             self.clearDrawings()
+           }
+         }
+       }
+       
+       let imageResultHandler = VNImageRequestHandler(cvPixelBuffer: image, orientation: .leftMirrored, options: [:])
+       try? imageResultHandler.perform([faceDetectionRequest])
+     }
+     
+     private func handleFaceDetectionResults(observedFaces: [VNFaceObservation]) {
+       clearDrawings()
+       
+       // Create the boxes
+       let facesBoundingBoxes: [CAShapeLayer] = observedFaces.map({ (observedFace: VNFaceObservation) -> CAShapeLayer in
+         
+         let faceBoundingBoxOnScreen = previewLayer.layerRectConverted(fromMetadataOutputRect: observedFace.boundingBox)
+         let faceBoundingBoxPath = CGPath(rect: faceBoundingBoxOnScreen, transform: nil)
+         let faceBoundingBoxShape = CAShapeLayer()
+         
+         // Set properties of the box shape
+         faceBoundingBoxShape.path = faceBoundingBoxPath
+         faceBoundingBoxShape.fillColor = UIColor.clear.cgColor
+         faceBoundingBoxShape.strokeColor = UIColor.green.cgColor
+         
+         return faceBoundingBoxShape
+       })
+       
+       // Add boxes to the view layer and the array
+       facesBoundingBoxes.forEach { faceBoundingBox in
+         view.layer.addSublayer(faceBoundingBox)
+         drawings = facesBoundingBoxes
+       }
+     }
+     
+     private func clearDrawings() {
+       drawings.forEach({ drawing in drawing.removeFromSuperlayer() })
+     }
+     
+   }
 
-        let options: [String: Any] = [CIDetectorAccuracy: CIDetectorAccuracyHigh,
-                                      CIDetectorMaxFeatureCount: 10]
+   // MARK: - AVCaptureVideoDataOutputSampleBufferDelegate
 
-        let detector = CIDetector(ofType: CIDetectorTypeFace, context: nil, options: options)
+   extension ViewController: AVCaptureVideoDataOutputSampleBufferDelegate {
+     
+     func captureOutput(_ output: AVCaptureOutput, didOutput sampleBuffer: CMSampleBuffer, from connection: AVCaptureConnection) {
+       
+       guard let frame = CMSampleBufferGetImageBuffer(sampleBuffer) else {
+         debugPrint("Unable to get image from the sample buffer")
+         return
+       }
+       
+       detectFace(image: frame)
+     }
+     
+   }
 
-        let faces = detector?.features(in: image)
-
-        DispatchQueue.main.async { [weak self] in
-            guard let self = self else { return }
-
-            if self.blurEnabled {
-                for imageView in self.blurImageViews {
-                    imageView.removeFromSuperview()
-                }
-                self.blurImageViews.removeAll()
-
-                if let features = faces as? [CIFaceFeature] {
-                    for face in features {
-                        let faceBounds = self.calculateImageViewFrame(for: face.bounds)
-
-                        // Add yellow outline box
-                        let outlineView = UIView(frame: faceBounds)
-                        outlineView.layer.borderWidth = 2.0
-                        outlineView.layer.borderColor = UIColor.yellow.cgColor
-                        outlineView.backgroundColor = UIColor.yellow.withAlphaComponent(0.3) // Ensure the outline view is transparent
-                        //print("Adding outline view")
-                        self.view.addSubview(outlineView)
-                        self.view.bringSubviewToFront(outlineView) // Bring the outline view to the front
-                        
-                        print("Added outline view at \(faceBounds)")
-
-                        let imageView = UIImageView()
-                        imageView.contentMode = .scaleAspectFill
-                        imageView.frame = faceBounds
-                        self.view.addSubview(imageView)
-                        self.blurImageViews.append(imageView)
-                    }
-                }
-            } else {
-                for imageView in self.blurImageViews {
-                    imageView.removeFromSuperview()
-                }
-                self.blurImageViews.removeAll()
-            }
-            
-            self.previewLayer.removeFromSuperlayer()
-            self.view.layer.addSublayer(self.previewLayer)
-
-            print("Number of detected faces: \(faces?.count ?? 0)")
-        }
-    }
-    
-    
-
-
-
-    
-    func calculateImageViewFrame(for faceBounds: CGRect) -> CGRect {
-        let scaleX = view.bounds.width
-        let scaleY = view.bounds.height
-        
-        let videoBox = self.videoPreviewBox(for: .resizeAspectFill, frameSize: view.bounds.size, apertureSize: faceBounds.size)
-        
-        var transform = CGAffineTransform.identity
-        transform = CGAffineTransform(scaleX: videoBox.width / scaleX, y: videoBox.height / scaleY)
-        transform = transform.translatedBy(x: videoBox.origin.x, y: videoBox.origin.y)
-        transform = transform.scaledBy(x: videoBox.width, y: videoBox.height)
-        
-        let transformedBounds = faceBounds.applying(transform)
-        
-        return transformedBounds
-    }
-
-
-
-    
-    func videoPreviewBox(for gravity: AVLayerVideoGravity, frameSize: CGSize, apertureSize: CGSize) -> CGRect {
-        var videoBox = CGRect.zero
-        let apertureRatio = apertureSize.height / apertureSize.width
-        let viewRatio = frameSize.width / frameSize.height
-        
-        //print("frameSize: \(frameSize), apertureSize: \(apertureSize)")
-        
-        switch gravity {
-        case .resize:
-            videoBox.size.width = frameSize.width
-            videoBox.size.height = frameSize.height
-            //print("videoBox for resize: \(videoBox)")
-            
-        case .resizeAspect:
-            if viewRatio > apertureRatio {
-                videoBox.size.width = frameSize.height * apertureRatio
-                videoBox.size.height = frameSize.height
-                videoBox.origin.x = (frameSize.width - videoBox.size.width) / 2
-            } else {
-                videoBox.size.width = frameSize.width
-                videoBox.size.height = frameSize.width / apertureRatio
-                videoBox.origin.y = (frameSize.height - videoBox.size.height) / 2
-            }
-            //print("videoBox for resizeAspect: \(videoBox)")
-            
-        case .resizeAspectFill:
-            if viewRatio > apertureRatio {
-                videoBox.size.width = frameSize.width
-                videoBox.size.height = frameSize.width / apertureRatio
-                videoBox.origin.y = (frameSize.height - videoBox.size.height) / 2
-            } else {
-                videoBox.size.width = frameSize.height * apertureRatio
-                videoBox.size.height = frameSize.height
-                videoBox.origin.x = (frameSize.width - videoBox.size.width) / 2
-            }
-           // print("videoBox for resizeAspectFill: \(videoBox)")
-
-            
-        default:
-            break
-        }
-        
-        return videoBox
-    }
-}
+//how do i fix this
